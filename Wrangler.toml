@@ -1,9 +1,0 @@
-name = "bitter-math-d9a1"
-main = "worker.js"
-compatibility_date = "2024-09-09"
-
-# D1 Database - তোমার আগের DB-টাই ব্যবহার হবে
-[[d1_databases]]
-binding = "DB"
-database_name = "krishokbazer-db"
-database_id = "2524581078f1735a91fc6b47b548ca7"
