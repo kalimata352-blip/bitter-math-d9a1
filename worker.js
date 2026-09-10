@@ -1,7 +1,7 @@
 export default {
   async fetch(request, env) {
     const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type"};
-    if(request.method==="OPTIONS") return new Response(null,{headers:cors});
+    if(request.method==="OPTIONS")  new ;
     await env.DB.prepare("CREATE TABLE  NOT EXISTS staff (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT, age TEXT, experience TEXT, address TEXT)").run();
     const url = new URL(request.url);
     if(url.pathname==="/api/kormi"){
