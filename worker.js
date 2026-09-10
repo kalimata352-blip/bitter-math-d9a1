@@ -1,6 +1,6 @@
 export default {
   async fetch(request, env) {
-    const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type"};
+    const cors = {", POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type"};
     if(request.method==="OPTIONS") return new Response(null,{headers:cors});
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS staff (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT, age TEXT, experience TEXT, address TEXT)").run();
     const url = new URL(request.url);
