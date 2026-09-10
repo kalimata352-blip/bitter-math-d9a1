@@ -5,7 +5,7 @@ export default {
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS staff (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT, age TEXT, experience TEXT, address TEXT)").run();
     const url = new URL(request.url);
     if(url.pathname==="/api/kormi"){
-      const h={...cors,"Content-Type":"application/json"};
+      const "};
       if(request.method==="GET"){const {results}=await env.DB.prepare("SELECT * FROM staff ORDER BY id DESC").all();return new Response(JSON.stringify(results),{headers:h});}
       if(request.method==="POST"){const d=await request.json();await env.DB.prepare("INSERT INTO staff (name, phone, age, experience, address) VALUES (?,?,?,?,?)").bind(d.name||'',d.phone||'',d.age||'',d.experience||'',d.address||'').run();return new Response(JSON.stringify({success:true}),{headers:h});}
     }
