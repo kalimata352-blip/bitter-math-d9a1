@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>কৃষক বাজার - Prasenjit Shop</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Hind Siliguri',sans-serif}</style>
+</head>
+<body class="bg-[#f6f7f2]">
+<header class="bg-green-600 text-white p-3 sticky top-0 z-30">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <div>
+      <h1 class="font-bold text-base">🌾 কৃষক বাজার</h1>
+      <p class="text-[11px] opacity-90">যোগাযোগ: 6295633283</p>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="showTab('products')" id="btnP" class="bg-white text-green-700 px-4 py-1.5 rounded-full text-sm font-bold">দোকান</button>
+      <button onclick="showTab('kormi')" id="btnK" class="bg-green-800 text-white px-4 py-1.5 rounded-full text-sm">কর্মী নিয়োগ</button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto p-3">
+  <!-- SHOP -->
+  <div id="tab-products">
+    <div id="info" class="bg-white border p-2 rounded text-sm mb-3 text-center">লোড হচ্ছে...</div>
+    <div id="grid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+    
+    <div class="mt-6 bg-white p-4 rounded-lg shadow">
+      <h3 class="font-bold text-sm mb-2">Admin - নতুন প্রোডাক্ট যোগ</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <input id="pName" placeholder="নাম যেমন: আলু 1 কেজি" class="border rounded p-2 text-sm">
+        <input id="pPrice" type="number" placeholder="দাম 30" class="border rounded p-2 text-sm">
+        <button onclick="addProduct()" class="bg-green-600 text-white rounded p-2 text-sm font-bold">Add করুন</button>
+      </div>
+      <p id="pMsg" class="text-xs mt-2"></p>
+    </div>
+  </div>
+
+  <!-- KORMI -->
+  <div id="tab-kormi" class="hidden">
+    <div class="bg-blue-50 border border-blue-200 p-3 rounded mb-3 text-sm">
+      <b>নিয়ম:</b> ভোটার কার্ড বাধ্যতামূলক। একই ভোটার কার্ড 2 বার চলবে না। অন্য সার্ভার থেকে কাজ করবে না।<br>
+      হেল্প: <a href="tel:6295633283" class="font-bold text-blue-700">6295633283</a>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="font-bold text-sm mb-3">আবেদন ফর্ম</h3>
+        <input id="kName" placeholder="পুরো নাম *" class="w-full border rounded p-2.5 mb-2 text-sm">
+        <input id="kPhone" placeholder="ফোন নম্বর *" class="w-full border rounded p-2.5 mb-2 text-sm">
+        <input id="kVoter" placeholder="ভোটার কার্ড নম্বর * (যেমন: ABC1234567)" class="w-full border-2 border-green-300 rounded p-2.5 mb-2 text-sm font-mono uppercase" oninput="this.value=this.value.toUpperCase()">
+        <input id="kRole" placeholder="কাজ (ডেলিভারি / প্যাকিং)" class="w-full border rounded p-2.5 mb-2 text-sm">
+        <button onclick="addKormi()" class="w-full bg-blue-600 text-white rounded p-2.5 text-sm font-bold">জমা দিন</button>
+        <p id="kMsg" class="text-sm mt-3 font-bold"></p>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="font-bold text-sm mb-2">আবেদন তালিকা</h3>
+        <div id="kInfo" class="text-xs text-gray-500 mb-2">লোড হচ্ছে...</div>
+        <div id="kList" class="space-y-2 max-h-[70vh] overflow-auto"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = "https://bitter-math-d9a1.krishokbazer.workers.dev";
+const API_P = API + "/api/products";
+const API_K = API + "/api/kormi";
+
+// কোনো লাল চিহ্ন থাকবে না, সবুজ/নীল
+function showTab(t){
+  document.getElementById('tab-products').classList.toggle('hidden', t!=='products');
+  document.getElementById('tab-kormi').classList.toggle('hidden', t!=='kormi');
+  document.getElementById('btnP').className = t==='products' ? 'bg-white text-green-700 px-4 py-1.5 rounded-full text-sm font-bold' : 'bg-green-800 text-white px-4 py-1.5 rounded-full text-sm';
+  document.getElementById('btnK').className = t==='kormi' ? 'bg-white text-blue-700 px-4 py-1.5 rounded-full text-sm font-bold' : 'bg-green-800 text-white px-4 py-1.5 rounded-full text-sm';
+  if(t==='kormi') loadKormi(); else loadProducts();
+}
+
+// ছবি না থাকলে লাল ভাঙা আইকন না, সুন্দর সবুজ কার্ড দেখাবে
+function safeImage(img){
+  if(!img || img.trim()==="" || img.includes("via.placeholder.com")){
+    return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'><rect width='300' height='200' fill='%23e8f5e9'/><text x='150' y='100' font-family='Arial' font-size='40' text-anchor='middle' fill='%232e7d32'>🌾</text><text x='150' y='130' font-family='Arial' font-size='14' text-anchor='middle' fill='%23666'>কৃষক বাজার</text></svg>";
+  }
+  return img;
+}
+
+async function loadProducts(){
+  const grid=document.getElementById('grid');
+  const info=document.getElementById('info');
+  try{
+    info.textContent="API থেকে আনছি...";
+    const r=await fetch(API_P+"?t="+Date.now(), {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const data=await r.json();
+    if(!Array.isArray(data) || data.length===0){
+      info.textContent="এখনো প্রোডাক্ট নেই, নিচে থেকে Add করো।";
+      grid.innerHTML="";
+      return;
+    }
+    info.textContent=`✅ ${data.length} টি প্রোডাক্ট পাওয়া গেছে - মোবাইল: 6295633283`;
+    grid.innerHTML=data.map(p=>`
+      <div class="bg-white rounded-xl shadow-sm border p-2 flex flex-col">
+        <img src="${safeImage(p.image)}" class="w-full h-24 object-cover rounded-lg bg-green-50" loading="lazy">
+        <p class="font-semibold text-[13px] mt-2 leading-tight">${p.name}</p>
+        <p class="text-green-700 font-bold text-sm">₹ ${p.price}</p>
+        <p class="text-[10px] text-gray-400">ID: ${p.id}</p>
+      </div>
+    `).join('');
+  }catch(e){
+    info.textContent="❌ লোড হচ্ছে না: "+e.message+" | API: "+API_P;
+    info.className="bg-red-50 border border-red-200 p-2 rounded text-sm mb-3 text-center text-red-700";
+  }
+}
+
+async function addProduct(){
+  const name=document.getElementById('pName').value.trim();
+  const price=Number(document.getElementById('pPrice').value);
+  const msg=document.getElementById('pMsg');
+  if(!name||!price){ msg.textContent="নাম ও দাম দিন"; return; }
+  msg.textContent="যোগ হচ্ছে...";
+  try{
+    const r=await fetch(API_P,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,price,image:""})});
+    const j=await r.json();
+    if(r.ok){ msg.textContent="✅ যোগ হয়েছে"; document.getElementById('pName').value=""; document.getElementById('pPrice').value=""; loadProducts(); }
+    else msg.textContent="❌ "+(j.error||"Failed");
+  }catch(e){ msg.textContent="❌ "+e.message; }
+}
+
+async function loadKormi(){
+  const info=document.getElementById('kInfo');
+  const list=document.getElementById('kList');
+  try{
+    info.textContent="লোড হচ্ছে...";
+    const r=await fetch(API_K+"?t="+Date.now(), {cache:"no-store"});
+    const data=await r.json();
+    info.textContent=`${data.length} জন আবেদন করেছে`;
+    if(data.length===0){ list.innerHTML="<p class='text-xs text-gray-400'>এখনো কেউ আবেদন করেনি</p>"; return; }
+    list.innerHTML=data.map(k=>`
+      <div class="border rounded p-2 bg-gray-50">
+        <p class="text-sm font-semibold">${k.name} <span class="text-xs text-gray-500">(${k.phone})</span></p>
+        <p class="text-xs font-mono bg-white border inline-block px-1.5 py-0.5 rounded mt-1">VOTER: ${k.voter_card}</p>
+        <p class="text-[11px] text-gray-500 mt-1">${k.role||'General'} • ${k.created_at?new Date(k.created_at).toLocaleDateString('bn-IN'):''}</p>
+      </div>
+    `).join('');
+  }catch(e){ info.textContent="Error: "+e.message; }
+}
+
+async function addKormi(){
+  const name=document.getElementById('kName').value.trim();
+  const phone=document.getElementById('kPhone').value.trim();
+  const voter_card=document.getElementById('kVoter').value.trim().toUpperCase();
+  const role=document.getElementById('kRole').value.trim();
+  const msg=document.getElementById('kMsg');
+  if(!name||!phone||!voter_card){ msg.textContent="❌ নাম, ফোন, ভোটার কার্ড বাধ্যতামূলক"; msg.className="text-sm mt-3 font-bold text-red-600"; return; }
+  msg.textContent="⏳ জমা হচ্ছে, ঘড়ির মতো একটু অপেক্ষা করুন..."; msg.className="text-sm mt-3 text-blue-600";
+  try{
+    const r=await fetch(API_K,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,phone,voter_card,role})});
+    const j=await r.json();
+    if(r.ok){
+      msg.textContent="✅ সফল! ভোটার কার্ড "+voter_card+" দিয়ে আবেদন জমা হয়েছে।"; msg.className="text-sm mt-3 font-bold text-green-600";
+      document.getElementById('kName').value=""; document.getElementById('kPhone').value=""; document.getElementById('kVoter').value=""; document.getElementById('kRole').value="";
+      loadKormi();
+    } else {
+      msg.textContent="❌ "+(j.error||"আগেই এই ভোটার কার্ড ব্যবহার হয়েছে");
+      msg.className="text-sm mt-3 font-bold text-red-600";
+    }
+  }catch(e){ msg.textContent="❌ "+e.message; msg.className="text-sm mt-3 font-bold text-red-600"; }
+}
+
+loadProducts();
+</script>
+</body>
+</html>
